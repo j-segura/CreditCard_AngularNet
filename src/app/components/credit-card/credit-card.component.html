@@ -7,7 +7,7 @@
             class="row m-0"
             [formGroup]="form" 
             (ngSubmit)="addCard()">
-            <h4 class="mb-3 col-12 p-0"><span class="text-success">Add</span> new credit card</h4>
+            <h4 class="mb-3 col-12 p-0"><span class="text-success">{{ action }}</span> credit card</h4>
             <div class="row m-0 p-0">
                 <div class="input-group p-0" data-bs-theme="dark">
                     <span class="input-group-text" id="basic-addon1"><i class="fa-regular fa-user fz-12"></i></span>
@@ -22,7 +22,7 @@
                     <input type="text"
                         class="form-control"
                         placeholder="Card number"
-                        formControlName="numCard">
+                        formControlName="numCard" maxlength="16">
                 </div>
                 <small *ngIf="this.form.get('numCard')?.invalid && this.form.get('numCard')?.touched" class="col-12 p-0 m-0 redc">Informacion invalida</small>
                 <div class="col-md-8 pl-1">
@@ -48,7 +48,7 @@
             </div>
             <input class="botons mt-3"
                 type="submit"
-                value="ADD CARD"
+                value="{{ action }} Card"
                 [disabled]="this.form.invalid">
         </form>
     </div>
@@ -65,14 +65,14 @@
                 </tr>
             </thead>
             <tbody class="table-group-divider">
-                <tr *ngFor="let card of listCards; let i = index">
+                <tr *ngFor="let card of listCards">
                     <th>{{ card.owner }}</th>
                     <td>{{ card.numCard }}</td>
                     <td>{{ card.expirationDate }}</td>
                     <td>{{ card.cvv }}</td>
                     <td>
-                        <i class="fa-regular fa-pen-to-square fz-14 m-2 bluec"></i>
-                        <i class="fa-solid fa-trash m-2 fz-14 redc" (click)="deleteCard(i)"></i>
+                        <i class="fa-regular fa-pen-to-square fz-14 m-2 bluec" (click)="editCard(card)"></i>
+                        <i class="fa-solid fa-trash m-2 fz-14 redc" (click)="deleteCard(card.id)"></i>
                     </td>
                 </tr>
               </tbody>

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
+import { CardService } from 'src/app/services/card.service';
 
 @Component({
   selector: 'app-credit-card',
@@ -9,31 +10,15 @@ import { ToastrService } from 'ngx-toastr';
 })
 export class CreditCardComponent implements OnInit{
 
-  listCards:any[] = [
-    {
-      owner: 'Mark',
-      numCard: '12345678900',
-      expirationDate: '15/23',
-      cvv: 223
-    },
-    {
-      owner: 'Junes',
-      numCard: '23456584443',
-      expirationDate: '11/23',
-      cvv: 2443
-    },
-    {
-      owner: 'Jhon',
-      numCard: '12345678963',
-      expirationDate: '15/12',
-      cvv: 223
-    },
-  ]
+  listCards:any[] = [];
+  action = 'Add';
 
   form: FormGroup;
+  id: number | undefined;
 
   constructor(private fb:FormBuilder,
-    private toastr: ToastrService) {
+    private toastr: ToastrService,
+    private _cardService : CardService) {
 
     this.form = this.fb.group({
       owner:['', Validators.required],
@@ -45,7 +30,15 @@ export class CreditCardComponent implements OnInit{
   }
 
   ngOnInit(): void {
+    this.getCards();
+  }
 
+  getCards(){
+    this._cardService.getCardList().subscribe(data => {
+      this.listCards = data;
+    },error => {
+      console.log(error);
+    })
   }
 
   addCard(){
@@ -59,15 +52,48 @@ export class CreditCardComponent implements OnInit{
 
     }
 
-    this.listCards.push(card);
-    this.toastr.success('Registered!', 'Card successfully registered!');
-    this.form.reset();
+    if (this.id == undefined) {
+      this._cardService.saveCard(card).subscribe(data => {
+        this.toastr.success('Registered!', 'Card successfully registered!');
+        this.getCards();
+        this.form.reset();
+      },error => {
+        this.toastr.error('Not Registered!', 'Card NOT registered!');
+      })
+    }else {
+      card.id = this.id;
+      this._cardService.updateCard(this.id, card).subscribe(data => {
+        this.form.reset();
+        this.action = 'Add';
+        this.id = undefined;
+        this.toastr.info('Updated!', 'Card successfully Updated!');
+        this.getCards();
+      },error => {
+        this.toastr.error('Not Updated!', 'Card NOT Updated!');
+      })
+    }
 
   }
 
-  deleteCard(index: number){
-    this.listCards.splice(index, 1);
-    this.toastr.error('Deleted!', 'Card successfully deleted!');
+  deleteCard(id: number){
+    this._cardService.deleteCard(id).subscribe(data => {
+      this.toastr.error('Deleted!', 'Card successfully deleted!');
+      this.getCards();
+    },error => {
+      console.log("Error deleting the Card");
+    });
+  }
+
+  editCard(card: any){
+    this.action = 'Edit';
+    this.id = card.id;
+
+    this.form.patchValue({
+      owner: card.owner,
+      numCard: card.numCard,
+      expirationDate: card.expirationDate,
+      cvv: card.cvv
+    })
   }
 
 }
